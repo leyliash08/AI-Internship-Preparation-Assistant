@@ -28,7 +28,7 @@ Set up the project structure and prepare the frontend environment.
 - JavaScript
 - Git
 
-### Learned
+### Learned and revised
 
 - Vue project structure
 - App.vue
