@@ -1,9 +1,24 @@
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
-const businessIdea = ref("");
-const result = ref("");
+const internshipGoal = ref("");
+const planGenerated = ref(false);
 const errorMessage = ref("");
+
+const characterCount = computed(() => internshipGoal.value.length);
+
+const preparationSections = [
+  {
+    title: "Required Skills",
+    description: "Technical and soft skills required for the internship",
+    icon: "✅",
+    emptyText: "No skills identified yet",
+  },
+
+  {
+    title: 
+  }
+]
 
 function analyzeIdea() {
   errorMessage.value = "";
