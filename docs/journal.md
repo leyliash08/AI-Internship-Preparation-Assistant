@@ -102,3 +102,34 @@ The next step is to build the backend with FastAPI, connect the OpenAI API, and 
 - HTML
 - CSS
 - Git
+
+## Day 3 – Backend Development and AI Integration
+
+### Goal
+
+Connect the frontend to the backend and integrate the OpenAI API.
+
+### Completed Tasks
+
+- Created the FastAPI backend.
+- Installed FastAPI, Uvicorn, OpenAI and python-dotenv.
+- Created the POST /analyze endpoint.
+- Connected the backend to the OpenAI API.
+- Stored the API key in a .env file.
+- Added .env to .gitignore.
+- Configured CORS for frontend communication.
+- Connected the Vue frontend to the backend using fetch().
+- Parsed the AI response and displayed the generated learning plan in the interface.
+- Tested the application using Swagger UI and the frontend.
+
+### What I Learned
+
+- How REST APIs work with FastAPI.
+- How to use environment variables.
+- How to connect a Vue frontend to a Python backend.
+- How to send POST requests using fetch().
+- How to process JSON responses from an AI API.
+
+### Result
+
+The application successfully generates an AI-powered internship preparation plan from the user's input.
