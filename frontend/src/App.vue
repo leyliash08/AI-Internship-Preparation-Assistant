@@ -37,7 +37,7 @@ const preparationSections = [
 
   {
     key: 'next_steps',
-    title: 'Nest Steps',
+    title: 'Next Steps',
     description: 'Recommended actions to move forward',
     icon: '🚩',
     emptyText: 'No next steps generated yet',
@@ -68,10 +68,10 @@ function clearForm(){
   }
 }
 
-async function analyzeIdea(){
+async function analyzeIdea() {
   errorMessage.value = ''
 
-  if(!internshipGoal.value.trim()){
+  if (!internshipGoal.value.trim()) {
     errorMessage.value = 'Please describe your internship goal.'
     return
   }
@@ -79,14 +79,37 @@ async function analyzeIdea(){
   isLoading.value = true
 
   try {
-    console.log('Internship goal: ', internshipGoal.value)
-  } catch (error){
+    const response = await fetch('http://127.0.0.1:8000/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        internship_goal: internshipGoal.value,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('The backend could not generate the learning plan.')
+    }
+
+    const data = await response.json()
+
+    results.value = {
+      required_skills: data.required_skills || [],
+      learning_plan: data.learning_plan || [],
+      skill_gaps: data.skill_gaps || [],
+      next_steps: data.next_steps || [],
+    }
+
+    planGenerated.value = true
+  } catch (error) {
     console.error(error)
-    errorMessage.value = 'Something went wrong.'
+    errorMessage.value =
+      'The learning plan could not be generated. Please try again.'
   } finally {
     isLoading.value = false
   }
-
 }
 </script>
 
