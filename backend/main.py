@@ -1,6 +1,7 @@
 import json
 import os
 
+from database import Analysis, SessionLocal
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,10 +65,61 @@ def analyze_internship_request(request: InternshipRequest):
 
     result = json.loads(response.output_text)
 
-    return{
+   
+    required_skills = result.get('required_skills', [])
+    learning_plan = result.get('learning_plan', [])
+    skill_gaps = result.get('skill_gaps', [])
+    next_steps = result.get('next_steps', [])
+
+    database = SessionLocal()
+
+    try:
+        analysis = Analysis(
+            internship_goal=request.internship_goal,
+            required_skills=json.dumps(required_skills),
+            learning_plan=json.dumps(learning_plan),
+            skill_gaps=json.dumps(skill_gaps),
+            next_steps=json.dumps(next_steps),
+        )
+        database.add(analysis)
+        database.commit()
+        database.refresh(analysis)
+    
+    finally:
+        database.close()
+
+    return {
+        'id': analysis.id,
         'internship_goal': request.internship_goal,
-        'required_skills': result.get('required_skills', []),
-        'learning_plan': result.get('learning_plan', []),
-        'skill_gaps': result.get('skill_gaps', []),
-        'next_steps': result.get('next_steps', []),
+        'required_skills': required_skills,
+        'learning_plan': learning_plan,
+        'skill_gaps': skill_gaps,
+        'next_steps': next_steps,
+        'created_at': analysis.created_at,
     }
+
+@app.get('/analyses')
+def get_analyses():
+    database = SessionLocal()
+
+    try:
+        analyses = (
+            database.query(Analysis)
+            .order_by(Analysis.created_at.desc())
+            .all()
+        )
+
+        return [
+            {
+                'id': analysis.id,
+                'internship_goal': analysis.internship_goal,
+                'required_skills': json.loads(analysis.required_skills),
+                'learning_plan': json.loads(analysis.learning_plan),
+                'skill_gaps': json.loads(analysis.skill_gaps),
+                'next_steps': json.loads(analysis.next_steps),
+                'created_at': analysis.created_at,
+            }
+            for analysis in analyses
+        ]
+    finally:
+        database.close()
