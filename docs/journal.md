@@ -133,3 +133,78 @@ Connect the frontend to the backend and integrate the OpenAI API.
 ### Result
 
 The application successfully generates an AI-powered internship preparation plan from the user's input.
+
+## Day 4 – Database Integration and Analysis History API
+
+### Goal
+
+Add persistent data storage to the backend and create an API endpoint for retrieving previous analyses.
+
+### Completed Tasks
+
+- Installed and configured SQLAlchemy.
+- Created an SQLite database for storing internship analyses.
+- Created the database connection and session configuration.
+- Created a database model for saved analyses.
+- Updated the POST `/analyze` endpoint.
+- Added automatic saving of generated AI responses to the database.
+- Created the GET `/analyses` endpoint.
+- Configured the endpoint to return saved analyses ordered from newest to oldest.
+- Tested the database integration using Swagger UI.
+- Verified that generated analyses were successfully stored in SQLite.
+- Fixed backend import and indentation errors.
+
+### What I Learned
+
+- How to connect FastAPI to an SQLite database.
+- How SQLAlchemy models work.
+- How to create and manage database sessions.
+- How to save API results in a database.
+- How to retrieve database records through a GET endpoint.
+- How to debug backend import and indentation errors.
+
+### Result
+
+The backend can now permanently store every generated internship preparation analysis.
+
+Saved analyses can also be retrieved through the `/analyses` endpoint, which makes it possible to build a history feature in the frontend.
+
+## Day 5 – Frontend History Feature and Final Testing
+
+### Goal
+
+Display saved analyses in the frontend and allow users to reopen previous learning plans.
+
+### Completed Tasks
+
+- Added the `loadHistory()` function to the Vue frontend.
+- Connected the frontend to the GET `/analyses` endpoint.
+- Loaded saved analyses automatically using `onMounted()`.
+- Created the **Previous Analyses** section.
+- Displayed saved internship goals in the history list.
+- Added a **Refresh History** button.
+- Created the `openAnalysis()` function.
+- Added functionality for reopening a saved analysis.
+- Restored saved result cards when a history item was selected.
+- Added automatic history updates after generating a new analysis.
+- Added smooth scrolling to the result section.
+- Added CSS styling for the history cards.
+- Tested the **Clear** button.
+- Verified that the form and result cards are cleared correctly.
+- Checked the `requirements.txt` file.
+- Performed final frontend and backend testing.
+
+### What I Learned
+
+- How to fetch saved data from a backend API.
+- How to use `onMounted()` in Vue.
+- How to update reactive arrays with API data.
+- How to restore previously saved content in the interface.
+- How to refresh frontend data after a new database record is created.
+- How to test a complete full-stack application.
+
+### Result
+
+The application now provides a complete analysis history feature.
+
+Users can generate new internship preparation plans, save them in the SQLite database, view previous analyses, refresh the history, and reopen saved learning plans without generating them again.

@@ -1,14 +1,17 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from 'vue'
 
-const internshipGoal = ref("");
-const planGenerated = ref(false);
-const errorMessage = ref("");
-const isLoading = ref(false);
+const internshipGoal = ref('')
+const planGenerated = ref(false)
+const errorMessage = ref('')
+const isLoading = ref(false)
+const analysesHistory = ref([])
+const isHistoryLoading = ref(false)
+const historyError = ref('')
 
-const maxCharacters = 2000;
+const maxCharacters = 2000
 
-const characterCount = computed(() => internshipGoal.value.length);
+const characterCount = computed(() => internshipGoal.value.length)
 
 const preparationSections = [
   {
@@ -42,7 +45,6 @@ const preparationSections = [
     icon: '🚩',
     emptyText: 'No next steps generated yet',
   },
-
 ]
 
 const results = ref({
@@ -56,7 +58,7 @@ const isGeneratedDisabled = computed(() => {
   return internshipGoal.value.trim().length === 0 || isLoading.value
 })
 
-function clearForm(){
+function clearForm() {
   internshipGoal.value = ''
   errorMessage.value = ''
 
@@ -103,132 +105,194 @@ async function analyzeIdea() {
     }
 
     planGenerated.value = true
+    await loadHistory()
   } catch (error) {
     console.error(error)
-    errorMessage.value =
-      'The learning plan could not be generated. Please try again.'
+    errorMessage.value = 'The learning plan could not be generated. Please try again.'
   } finally {
     isLoading.value = false
   }
 }
+
+async function loadHistory() {
+  historyError.value = ''
+  isHistoryLoading.value = true
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/analyses')
+
+    if (!response.ok) {
+      throw new Error('Could not load history.')
+    }
+
+    const data = await response.json()
+    analysesHistory.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error(error)
+    historyError.value = 'Could not load your previous analyses.'
+    analysesHistory.value = []
+  } finally {
+    isHistoryLoading.value = false
+  }
+}
+
+function openAnalysis(analysis) {
+  internshipGoal.value = analysis.internship_goal
+
+  results.value = {
+    required_skills: analysis.required_skills,
+    learning_plan: analysis.learning_plan,
+    skill_gaps: analysis.skill_gaps,
+    next_steps: analysis.next_steps,
+  }
+
+  planGenerated.value = true
+  errorMessage.value = ''
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+}
+
+onMounted(() => {
+  loadHistory()
+})
 </script>
 
 <template>
-  <main class = "page">
-  <section class = "intro">
+  <main class="page">
+    <section class="intro">
+      <p class="eyebrow">AI-powered internship preparation</p>
 
-  <p class = "eyebrow"> AI-powered internship preparation</p>
-  
-  <h1>AI Internship Preparation Assistant</h1>
+      <h1>AI Internship Preparation Assistant</h1>
 
-  <p class="subtitle">
-   Analyze your current skills, see where you can do better and receive a personalized learning plan for your dream internship.
-  </p>
-  </section>
-
-  <section class="input-card">
-  <div class="input-header">
-  <div>
-  <h2>Describe your internship goal</h2>
-
-  <p>
-  Include the position you want and the skills you already have.
-  </p>
-  </div>
-
-  <span>
-  {{ characterCount }} / {{ maxCharacters }}
-  </span>
-  </div>
-
-  <textarea
-   v-model="internshipGoal"
-   :maxlength="maxCharacters"
-   placeholder="Example: I want to become a Backend Developer. I already know Python and SQL, but I have no experience with REST APIs or Docker."
-  ></textarea>
-
-  <p v-if="errorMessage" class="error-message">
-  {{ errorMessage }}
-  </p>
-
-  <div class="actions">
-
-  <button 
-  type = "button"
-  class = "secondary-button"
-  @click="clearForm"
-  >
-  Clear 
-  </button>
-
-  <button 
-  type = "button"
-  class = "primary-button"
-  :disabled="isGeneratedDisabled"
-  @click="analyzeIdea"
-  >
-  {{ isLoading ? 'Generating...' : 'Generate Learning Plan' }}
-  </button>
-  </div>
-  </section>
-
-
-<section class="results-section">
-  <div class="results-header">
-    <div>
-      <h2>Preparation Results</h2>
-      <p>
-        AI-generated skills and recommendations for your internship goal.
+      <p class="subtitle">
+        Analyze your current skills, see where you can do better and receive a personalized learning
+        plan for your dream internship.
       </p>
-    </div>
-  </div>
+    </section>
 
-  <div class="results-grid">
-    <article
-      v-for="section in preparationSections"
-      :key="section.key"
-      class="result-card"
-    >
-      <div class="result-card-header">
-        <div class="result-icon">
-          {{ section.icon }}
-        </div>
-
+    <section class="input-card">
+      <div class="input-header">
         <div>
-          <h3>{{ section.title }}</h3>
-          <p>{{ section.description }}</p>
+          <h2>Describe your internship goal</h2>
+
+          <p>Include the position you want and the skills you already have.</p>
         </div>
 
-        <span class="result-count">
-          {{ results[section.key].length }}
-        </span>
+        <span> {{ characterCount }} / {{ maxCharacters }} </span>
       </div>
 
-      <ul
-        v-if="results[section.key].length > 0"
-        class="result-list"
-      >
-        <li
-          v-for="item in results[section.key]"
-          :key="item"
+      <textarea
+        v-model="internshipGoal"
+        :maxlength="maxCharacters"
+        placeholder="Example: I want to become a Backend Developer. I already know Python and SQL, but I have no experience with REST APIs or Docker."
+      ></textarea>
+
+      <p v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </p>
+
+      <div class="actions">
+        <button type="button" class="secondary-button" @click="clearForm">Clear</button>
+
+        <button
+          type="button"
+          class="primary-button"
+          :disabled="isGeneratedDisabled"
+          @click="analyzeIdea"
         >
-          {{ item }}
-        </li>
-      </ul>
+          {{ isLoading ? 'Generating...' : 'Generate Learning Plan' }}
+        </button>
+      </div>
+    </section>
 
-      <div
-        v-else
-        class="empty-state"
-      >
-        <div class="empty-icon">
-          {{ section.icon }}
+    <section v-if="planGenerated" class="results-section">
+      <div class="results-header">
+        <div>
+          <h2>Preparation Results</h2>
+          <p>AI-generated skills and recommendations for your internship goal.</p>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <article v-for="section in preparationSections" :key="section.key" class="result-card">
+          <div class="result-card-header">
+            <div class="result-icon">
+              {{ section.icon }}
+            </div>
+
+            <div>
+              <h3>{{ section.title }}</h3>
+              <p>{{ section.description }}</p>
+            </div>
+
+            <span class="result-count">
+              {{ results[section.key].length }}
+            </span>
+          </div>
+
+          <ul v-if="results[section.key].length > 0" class="result-list">
+            <li v-for="item in results[section.key]" :key="item">
+              {{ item }}
+            </li>
+          </ul>
+
+          <div v-else class="empty-state">
+            <div class="empty-icon">
+              {{ section.icon }}
+            </div>
+
+            <p>{{ section.emptyText }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="history-section">
+      <div class="history-header">
+        <div>
+          <h2>Previous Analyses</h2>
+          <p>Open a previously generated internship preparation plan.</p>
         </div>
 
-        <p>{{ section.emptyText }}</p>
+        <button
+          type="button"
+          class="secondary-button history-refresh-button"
+          :disabled="isHistoryLoading"
+          @click="loadHistory"
+        >
+          {{ isHistoryLoading ? 'Loading...' : 'Refresh History' }}
+        </button>
       </div>
-    </article>
-  </div>
-</section>
+
+      <p v-if="historyError" class="error-message">
+        {{ historyError }}
+      </p>
+
+      <p v-else-if="!isHistoryLoading && analysesHistory.length === 0" class="empty-history">
+        No saved analyses yet.
+      </p>
+
+      <div v-else class="history-list">
+        <button
+          v-for="analysis in analysesHistory"
+          :key="analysis.id"
+          type="button"
+          class="history-item"
+          @click="openAnalysis(analysis)"
+        >
+          <span class="history-goal">
+            {{ analysis.internship_goal }}
+          </span>
+
+          <span class="history-date">
+            {{ new Date(analysis.created_at).toLocaleString() }}
+          </span>
+        </button>
+      </div>
+    </section>
   </main>
 </template>
 
@@ -450,6 +514,81 @@ button {
   line-height: 1.7;
 }
 
+.history-section {
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid #e1e6ed;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.history-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.history-header p {
+  margin: 8px 0 0;
+  color: #667085;
+}
+
+.history-refresh-button {
+  padding: 0 18px;
+  flex-shrink: 0;
+}
+
+.history-refresh-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e1e6ed;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.history-item:hover {
+  border-color: #98a2b3;
+  background: #f2f4f7;
+}
+
+.history-goal {
+  font-weight: 600;
+  color: #111827;
+}
+
+.history-date {
+  flex-shrink: 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.empty-history {
+  margin: 0;
+  color: #667085;
+}
+
 @media (max-width: 700px) {
   .page {
     padding: 28px 16px;
@@ -472,7 +611,15 @@ button {
   .results-section {
     padding: 20px;
   }
+
+  .history-header,
+  .history-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .history-section {
+    padding: 20px;
+  }
 }
-
-
 </style>
