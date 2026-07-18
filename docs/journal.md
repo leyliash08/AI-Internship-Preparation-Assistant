@@ -2,6 +2,8 @@
 
 ## Day 1 – Project Setup
 
+I studied the system provided by the professor and tried to understand how the frontend, backend, OpenAI API, database, and Git repository should work together.
+
 ### Goal
 
 Set up the project structure and prepare the frontend environment.
